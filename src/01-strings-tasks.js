@@ -9,8 +9,8 @@
 /**
  * Returns the result of concatenation of two strings.
  *
- * @param {string} value1
- * @param {string} value2
+ * @param {string} str1
+ * @param {string} str2
  * @return {string}
  *
  * @example
@@ -18,8 +18,8 @@
  *   'aa',''    => 'aa'
  *   '',  'bb'  => 'bb'
  */
-function concatenateStrings(/* value1, value2 */) {
-  throw new Error('Not implemented');
+function concatenateStrings(str1, str2) {
+  return str1 + str2;
 }
 
 
@@ -34,8 +34,8 @@ function concatenateStrings(/* value1, value2 */) {
  *   'b'     => 1
  *   ''      => 0
  */
-function getStringLength(/* value */) {
-  throw new Error('Not implemented');
+function getStringLength(str) {
+  return str.length;
 }
 
 /**
@@ -51,43 +51,43 @@ function getStringLength(/* value */) {
  *   'John','Doe'      => 'Hello, John Doe!'
  *   'Chuck','Norris'  => 'Hello, Chuck Norris!'
  */
-function getStringFromTemplate(/* firstName, lastName */) {
-  throw new Error('Not implemented');
+function getStringFromTemplate(firstName, lastName) {
+  return `Hello, ${firstName} ${lastName}!`;
 }
 
 /**
  * Extracts a name from template string 'Hello, First_Name Last_Name!'.
  *
- * @param {string} value
+ * @param {string} str
  * @return {string}
  *
  * @example
  *   'Hello, John Doe!' => 'John Doe'
  *   'Hello, Chuck Norris!' => 'Chuck Norris'
  */
-function extractNameFromTemplate(/* value */) {
-  throw new Error('Not implemented');
+function extractNameFromTemplate(str) {
+  return str.replace(/Hello, /i, '').slice(0, -1);
 }
 
 
 /**
  * Returns a first char of the given string.
  *
- * @param {string} value
+ * @param {string} str
  * @return {string}
  *
  * @example
  *   'John Doe'  => 'J'
  *   'cat'       => 'c'
  */
-function getFirstChar(/* value */) {
-  throw new Error('Not implemented');
+function getFirstChar(str) {
+  return str.charAt(0);
 }
 
 /**
  * Removes a leading and trailing whitespace characters from string.
  *
- * @param {string} value
+ * @param {string} str
  * @return {string}
  *
  * @example
@@ -95,14 +95,14 @@ function getFirstChar(/* value */) {
  *   'cat'              => 'cat'
  *   '\tHello, World! ' => 'Hello, World!'
  */
-function removeLeadingAndTrailingWhitespaces(/* value */) {
-  throw new Error('Not implemented');
+function removeLeadingAndTrailingWhitespaces(str) {
+  return str.trim();
 }
 
 /**
  * Returns a string that repeated the specified number of times.
  *
- * @param {string} value
+ * @param {string} str
  * @param {string} count
  * @return {string}
  *
@@ -110,8 +110,8 @@ function removeLeadingAndTrailingWhitespaces(/* value */) {
  *   'A', 5  => 'AAAAA'
  *   'cat', 3 => 'catcatcat'
  */
-function repeatString(/* value, count */) {
-  throw new Error('Not implemented');
+function repeatString(str, count) {
+  return str.repeat(count);
 }
 
 /**
@@ -126,8 +126,8 @@ function repeatString(/* value, count */) {
  *   'I like legends', 'end' => 'I like legs',
  *   'ABABAB','BA' => 'ABAB'
  */
-function removeFirstOccurrences(/* str, value */) {
-  throw new Error('Not implemented');
+function removeFirstOccurrences(str, value) {
+  return str.replace(value, '');
 }
 
 /**
@@ -141,8 +141,8 @@ function removeFirstOccurrences(/* str, value */) {
  *   '<span>' => 'span'
  *   '<a>' => 'a'
  */
-function unbracketTag(/* str */) {
-  throw new Error('Not implemented');
+function unbracketTag(str) {
+  return str.replace(/^(<)|(>)$/gi, '');
 }
 
 
@@ -156,8 +156,8 @@ function unbracketTag(/* str */) {
  *   'Thunderstruck' => 'THUNDERSTRUCK'
  *  'abcdefghijklmnopqrstuvwxyz' => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
  */
-function convertToUpperCase(/* str */) {
-  throw new Error('Not implemented');
+function convertToUpperCase(str) {
+  return str.toUpperCase();
 }
 
 /**
@@ -175,8 +175,8 @@ function convertToUpperCase(/* str */) {
  *   ],
  *   'info@gmail.com' => ['info@gmail.com']
  */
-function extractEmails(/* str */) {
-  throw new Error('Not implemented');
+function extractEmails(str) {
+  return str.split(';');
 }
 
 /**
@@ -202,8 +202,13 @@ function extractEmails(/* str */) {
  *             '└──────────┘\n'
  *
  */
-function getRectangleString(/* width, height */) {
-  throw new Error('Not implemented');
+function getRectangleString(width, height) {
+  const topLine = `┌${'─'.repeat(width - 2)}┐\n`;
+  const body = `${`│${' '.repeat(width - 2)}│\n`.repeat(height - 2)}`;
+  const bottomLine = `└${'─'.repeat(width - 2)}┘\n`;
+
+  const rectangle = topLine + body + bottomLine;
+  return rectangle;
 }
 
 
@@ -223,8 +228,17 @@ function getRectangleString(/* width, height */) {
  *    => 'NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm'
  *
  */
-function encodeToRot13(/* str */) {
-  throw new Error('Not implemented');
+const codeAtcharToROT13 = (char) => (char.match(/[a-z]/)
+  ? ((char.charCodeAt(0) - 97 + 13) % 26) + 97
+  : ((char.charCodeAt(0) - 65 + 13) % 26) + 65);
+
+function encodeToRot13(str) {
+  const arr = str.split('');
+  const newArr = arr.map((el) => String.fromCharCode(
+    el.match(/[\W\d]/) ? el.charCodeAt(0) : codeAtcharToROT13(el),
+  ));
+
+  return newArr.join('');
 }
 
 /**
@@ -240,8 +254,8 @@ function encodeToRot13(/* str */) {
  *   isString('test') => true
  *   isString(new String('test')) => true
  */
-function isString(/* value */) {
-  throw new Error('Not implemented');
+function isString(value) {
+  return typeof value === 'string' || value instanceof String;
 }
 
 
@@ -258,7 +272,7 @@ function isString(/* value */) {
  * (see https://en.wikipedia.org/wiki/Standard_52-card_deck)
  * Function returns the zero-based index of specified card in the initial deck above.
  *
- * @param {string} value
+ * @param {string} card
  * @return {number}
  *
  * @example
@@ -269,8 +283,15 @@ function isString(/* value */) {
  *   'Q♠' => 50
  *   'K♠' => 51
  */
-function getCardId(/* value */) {
-  throw new Error('Not implemented');
+function getCardId(card) {
+  const suits = ['♣', '♦', '♥', '♠'];
+  const rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+  const deck = suits.reduce(
+    (deckinner, elSuit) => deckinner.concat(rank.map((elRank) => elRank + elSuit)),
+    [],
+  );
+  return deck.indexOf(card);
 }
 
 
