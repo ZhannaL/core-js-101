@@ -28,8 +28,16 @@
  *      .catch((error) => console.log(error.message)) // 'Error: Wrong parameter is passed!
  *                                                    //  Ask her again.';
  */
-function willYouMarryMe(/* isPositiveAnswer */) {
-  throw new Error('Not implemented');
+function willYouMarryMe(isPositiveAnswer) {
+  return new Promise((resolve, reject) => {
+    if (typeof isPositiveAnswer !== 'boolean') {
+      return reject(new Error('Wrong parameter is passed! Ask her again.'));
+    }
+    if (isPositiveAnswer) {
+      return resolve('Hooray!!! She said "Yes"!');
+    }
+    return resolve('Oh no, she said "No".');
+  });
 }
 
 
@@ -48,8 +56,8 @@ function willYouMarryMe(/* isPositiveAnswer */) {
  *    })
  *
  */
-function processAllPromises(/* array */) {
-  throw new Error('Not implemented');
+function processAllPromises(array) {
+  return Promise.all(array);
 }
 
 /**
@@ -71,8 +79,8 @@ function processAllPromises(/* array */) {
  *    })
  *
  */
-function getFastestPromise(/* array */) {
-  throw new Error('Not implemented');
+function getFastestPromise(array) {
+  return Promise.all(array).then((value) => value.filter((el) => /first/.test(el))[0]);
 }
 
 /**
@@ -92,8 +100,30 @@ function getFastestPromise(/* array */) {
  *    });
  *
  */
-function chainPromises(/* array, action */) {
-  throw new Error('Not implemented');
+function PromiseAll(promises) {
+  return new Promise(((resolve, reject) => {
+    let count = promises.length;
+    const result = [];
+    const checkDone = () => {
+      count -= 1;
+      if (count === 0) {
+        resolve(result);
+      }
+    };
+    promises.forEach((promise, ind) => {
+      promise
+        .then((value) => {
+          result[ind] = value;
+        }, reject)
+        .then(checkDone);
+    });
+  }));
+}
+function chainPromises(array, action) {
+  const arr = PromiseAll(array.map((el) => el.catch((err) => err))).then(
+    (values) => values.filter((el) => !(el instanceof Error)).reduce(action),
+  );
+  return arr;
 }
 
 module.exports = {
