@@ -20,9 +20,13 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
 }
+Rectangle.prototype.getArea = function getArea() {
+  return this.width * this.height;
+};
 
 
 /**
@@ -35,8 +39,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +55,11 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const obj = JSON.parse(json);
+  const values = Object.values(obj);
+
+  return new proto.constructor(...values);
 }
 
 
@@ -110,36 +117,77 @@ function fromJSON(/* proto, json */) {
  *  For more examples see unit tests.
  */
 
-const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  id(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  class(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  attr(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
-  },
+const checkRepeat = (build, char) => {
+  if (build && build.find((elem) => elem.startsWith(char))) {
+    throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+  }
+  return false;
 };
 
+const checkFollowing = (build, char) => {
+  if (build && build.find((elem) => elem.startsWith(char))) {
+    throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+  }
+  return false;
+};
+
+const cssSelectorBuilder = {
+
+  element(value) {
+    if (this.build && this.build.find((elem) => /^(\w+)/.test(elem))) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    checkFollowing(this.build, '#');
+    const build = this.build ? this.build.concat(value) : [value];
+    return { build, ...cssSelectorBuilder };
+  },
+
+  id(value) {
+    const el = `#${value}`;
+    checkRepeat(this.build, '#');
+    checkFollowing(this.build, '.');
+    checkFollowing(this.build, '::');
+    const build = this.build ? this.build.concat(el) : [el];
+    return { build, ...cssSelectorBuilder };
+  },
+
+  class(value) {
+    const el = `.${value}`;
+    checkFollowing(this.build, '[');
+    const build = this.build ? this.build.concat(el) : [el];
+    return { build, ...cssSelectorBuilder };
+  },
+
+  attr(value) {
+    const el = `[${value}]`;
+    checkFollowing(this.build, ':');
+    const build = this.build ? this.build.concat(el) : [el];
+    return { build, ...cssSelectorBuilder };
+  },
+
+  pseudoClass(value) {
+    const el = `:${value}`;
+    checkFollowing(this.build, '::');
+    const build = this.build ? this.build.concat(el) : [el];
+    return { build, ...cssSelectorBuilder };
+  },
+
+  pseudoElement(value) {
+    const el = `::${value}`;
+    checkRepeat(this.build, '::');
+    const build = this.build ? this.build.concat(el) : [el];
+    return { build, ...cssSelectorBuilder };
+  },
+
+  combine(selector1, combinator, selector2) {
+    const el = [...selector1.build, ` ${combinator} `, ...selector2.build].join('');
+    const build = this.build ? this.build.concat(el) : [el];
+    return { build, ...cssSelectorBuilder };
+  },
+  stringify() {
+    return this.build.join('');
+  },
+};
 
 module.exports = {
   Rectangle,
