@@ -117,15 +117,15 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
-const checkRepeat = (build, char) => {
-  if (build && build.find((elem) => elem.startsWith(char))) {
+const checkRepeat = (build, type) => {
+  if (build && build.find((el) => el.type === type)) {
     throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
   }
   return false;
 };
 
-const checkFollowing = (build, char) => {
-  if (build && build.find((elem) => elem.startsWith(char))) {
+const checkFollowing = (build, type) => {
+  if (build && build.find((el) => el.type === type)) {
     throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
   }
   return false;
@@ -134,58 +134,57 @@ const checkFollowing = (build, char) => {
 const cssSelectorBuilder = {
 
   element(value) {
-    if (this.build && this.build.find((elem) => /^(\w+)/.test(elem))) {
-      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
-    }
-    checkFollowing(this.build, '#');
-    const build = this.build ? this.build.concat(value) : [value];
+    const el = { type: 'element', value };
+    checkRepeat(this.build, 'element');
+    checkFollowing(this.build, 'id');
+    const build = this.build ? this.build.concat(el) : [el];
     return { build, ...cssSelectorBuilder };
   },
 
   id(value) {
-    const el = `#${value}`;
-    checkRepeat(this.build, '#');
-    checkFollowing(this.build, '.');
-    checkFollowing(this.build, '::');
+    const el = { type: 'id', value: `#${value}` };
+    checkRepeat(this.build, 'id');
+    checkFollowing(this.build, 'class');
+    checkFollowing(this.build, 'pseudoElement');
     const build = this.build ? this.build.concat(el) : [el];
     return { build, ...cssSelectorBuilder };
   },
 
   class(value) {
-    const el = `.${value}`;
-    checkFollowing(this.build, '[');
+    const el = { type: 'class', value: `.${value}` };
+    checkFollowing(this.build, 'attr');
     const build = this.build ? this.build.concat(el) : [el];
     return { build, ...cssSelectorBuilder };
   },
 
   attr(value) {
-    const el = `[${value}]`;
-    checkFollowing(this.build, ':');
+    const el = { type: 'attr', value: `[${value}]` };
+    checkFollowing(this.build, 'pseudoClass');
     const build = this.build ? this.build.concat(el) : [el];
     return { build, ...cssSelectorBuilder };
   },
 
   pseudoClass(value) {
-    const el = `:${value}`;
-    checkFollowing(this.build, '::');
+    const el = { type: 'pseudoClass', value: `:${value}` };
+    checkFollowing(this.build, 'pseudoElement');
     const build = this.build ? this.build.concat(el) : [el];
     return { build, ...cssSelectorBuilder };
   },
 
   pseudoElement(value) {
-    const el = `::${value}`;
-    checkRepeat(this.build, '::');
+    const el = { type: 'pseudoElement', value: `::${value}` };
+    checkRepeat(this.build, 'pseudoElement');
     const build = this.build ? this.build.concat(el) : [el];
     return { build, ...cssSelectorBuilder };
   },
 
   combine(selector1, combinator, selector2) {
-    const el = [...selector1.build, ` ${combinator} `, ...selector2.build].join('');
-    const build = this.build ? this.build.concat(el) : [el];
+    const el = [...selector1.build, { type: 'combinator', value: ` ${combinator} ` }, ...selector2.build];
+    const build = this.build ? this.build.concat(el) : el;
     return { build, ...cssSelectorBuilder };
   },
   stringify() {
-    return this.build.join('');
+    return this.build.map((el) => el.value).join('');
   },
 };
 
